@@ -1,0 +1,10 @@
+
+
+services: # just following the diagrams of the docker-compose.yaml file describe earlier and the Docker Containers diagram
+  account: 
+  account_db: 
+  catalog: 
+  catalog_db: 
+  order: 
+  order_db: 
+  graphql: 

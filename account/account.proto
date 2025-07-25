@@ -1,0 +1,53 @@
+// here proto is definition of how the our microservice will interact with our server
+
+// So here it will be Human Readable generated file of proto but as soon we'll push it, an auto generated file defining each and every rule we defined for our server and clients conenction will be defined
+//proto server consists of requests and response like in this case grpc will either request or get a reponse back and we'll deine some number of fields for requests and responses 
+// for every action we'll define our request and response
+syntex = "proto3";
+
+package pb;
+
+option go_package = "github.com/AryanParashar24/Go-Microservice-Project";
+
+message Account{
+    string id = 1;  // here we are setting up unique fields liek a serialized message where the first field would be an ID and second field would be name
+    string name = 2;
+}
+
+// Now to get the names of the actions to define request and request we need to look at the service.go file in our account fir
+message PostAccountRequest {
+  string name = 1; // string because we just need the name of the account
+}
+
+message PostAccountResponse {
+  Account  account = 1; // this will be the response we get after posting an account
+}
+
+message GetAccountRequest{
+    string id =  1;    // id of the account to retrieve
+}
+
+message GetAccountResponse{
+    Account account = 1; 
+}
+
+message GetAccountsRequest{
+    uint64 skip = 1; 
+    uint take = 2;
+}
+
+message GetAccountsResponse{
+    repeated Account accounts =1 ;
+}
+
+service AccountService{
+    rpc PostAccount(PostAccountRequest) returns(PostAccountResponse){
+
+    }
+    rpc GetAccount(GetAccountRequest) returns(GetAccountResponse){
+
+    }
+    rpc GetAccounts(GetAccountsRequest) returns(GetAccountsResponse){
+
+    }
+}
