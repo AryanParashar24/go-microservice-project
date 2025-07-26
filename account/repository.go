@@ -48,7 +48,7 @@ func (r * postrgressRepository) PutAccount(ctx context.Context, a Account) error
 }
 
 func (r *postgressRepository) GetAccountByID(ctx context.Context, id string) ( *Account, error){
-	r.db.QueryRowContext(ctx, "SELECT id, name FROM accounts WHERE id = $1", id).Scan(&a.ID, &a.Name) // this queries the database to get the account by id and scans the result into the account struct
+	row:= r.db.QueryRowContext(ctx, "SELECT id, name FROM accounts WHERE id = $1", id).Scan(&a.ID, &a.Name) // this queries the database to get the account by id and scans the result into the account struct
 	a := &Account{} // taken from the Account
 	if err := row.Scan(&a.ID, &a.Name); err != nil {
 		return nil, err

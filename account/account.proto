@@ -3,11 +3,10 @@
 // So here it will be Human Readable generated file of proto but as soon we'll push it, an auto generated file defining each and every rule we defined for our server and clients conenction will be defined
 //proto server consists of requests and response like in this case grpc will either request or get a reponse back and we'll deine some number of fields for requests and responses 
 // for every action we'll define our request and response
-syntex = "proto3";
-
+syntax = "proto3";
 package pb;
 
-option go_package = "github.com/AryanParashar24/Go-Microservice-Project";
+option go_package = "./";
 
 message Account{
     string id = 1;  // here we are setting up unique fields liek a serialized message where the first field would be an ID and second field would be name
@@ -33,7 +32,7 @@ message GetAccountResponse{
 
 message GetAccountsRequest{
     uint64 skip = 1; 
-    uint take = 2;
+    uint64 take = 2;
 }
 
 message GetAccountsResponse{
