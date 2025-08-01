@@ -18,7 +18,7 @@ func NewClient(url string) (*Client, error) {
 		return nil, err
 	}
 	c := pb.NewCatalogServiceClient(conn)
-	return &Client(conn, c), nil
+	return &Client{conn, c}, nil
 }
 
 func (c *Client) Close() {
@@ -28,7 +28,7 @@ func (c *Client) Close() {
 func (c *Client) PostProduct(ctx context.Context, name, description string, price float64) (*Product, error) {
 	r, err := c.service.PostProduct(
 		ctx,
-		&pb.postProductRequest{
+		&pb.PostProductRequest{
 			Name:        name,
 			Description: description,
 			Price:       price,
@@ -46,11 +46,14 @@ func (c *Client) PostProduct(ctx context.Context, name, description string, pric
 		Price:       r.Product.Price,
 	}, nil
 }
-func (c *Client) GetProduct(ctx context.Context, id string) (*Product, error) {
-	r, err := c.service.GetProduct(
+func (c *Client) GetProducts(ctx context.Context, skip uint64, take uint64, ids []string, query string) ([]Product, error) {
+	r, err := c.service.GetProducts(
 		ctx,
-		&pb.GetProductRequest{
-			Id: id,
+		&pb.GetProductsRequest{
+			Ids:   ids,
+			Skip:  skip,
+			Take:  take,
+			Query: query,
 		},
 	)
 	if err != nil {
@@ -78,7 +81,7 @@ func (c *Client) GetProducts(ctx context.Context, skip uint64, take uint64, ids 
 	}
 	products := []Product{}
 	for _, p := range r.Products {
-		products = append(products, &Product{
+		products = append(products, Product{
 			ID:          p.Id,
 			Name:        p.Name,
 			Description: p.Description,

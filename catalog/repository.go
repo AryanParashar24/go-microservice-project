@@ -33,9 +33,9 @@ type productDocument struct {
 }
 
 type NewElastricDocument struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Price       string `json:"price"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
 }
 
 func NewElasticRepository(url string) (Repository, error) {
@@ -61,8 +61,7 @@ func (r *elasticRepository) PutProduct(ctx context.Context, p Product) error { /
 			Name:        p.Name,
 			Description: p.Description,
 			Price:       p.Price,
-		})
-	Do(ctx) // we do context retrun error
+		}).Do(ctx) // we do context return error
 	return err
 }
 func (r *elasticRepository) GetProductByID(ctx context.Context, id string) (*Product, error) {
@@ -79,7 +78,7 @@ func (r *elasticRepository) GetProductByID(ctx context.Context, id string) (*Pro
 	}
 
 	p := productDocument{}
-	if err = json.Unmarshal(res.Source, &p); err != nil { // here we will unmarshal which means converting json to productDocument:p and here we will get error if it is not in correct format
+	if err = json.Unmarshal(*res.Source, &p); err != nil { // here we will unmarshal which means converting json to productDocument:p and here we will get error if it is not in correct format
 		return nil, err
 	}
 	return &Product{ // Here we are returning the Product along with its structures to the product field
@@ -91,7 +90,7 @@ func (r *elasticRepository) GetProductByID(ctx context.Context, id string) (*Pro
 }
 
 func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error) {
-	res, err := client.Search(). // here the products are seached and listed
+	res, err := r.client.Search(). // here the products are seached and listed
 					Index("catalog").
 					Type("product").
 					Query(elastic.NewMatchQuery()). // here its function is to match all the terms or the products with the query that we sent
@@ -129,7 +128,7 @@ func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string
 				Id(id),
 		)
 	}
-	res, err := client.MultiGet().
+	res, err := r.client.MultiGet().
 		Add(items...).
 		Do(Ctx)
 	if err != nil {
