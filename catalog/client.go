@@ -2,10 +2,9 @@ package catalog
 
 import (
 	"context"
+
 	"github.com/AryanParashar24/go-microservices-project/catalog/pb"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
-
 )
 
 type Client struct {
@@ -13,79 +12,78 @@ type Client struct {
 	service pb.CatalogServiceClient
 }
 
-func NewClient (url string)(*Client, error){
-	conn, err:= grpc.Dial(url, grpc.WithInsecure())
-	if err!= nil{
+func NewClient(url string) (*Client, error) {
+	conn, err := grpc.Dial(url, grpc.WithInsecure())
+	if err != nil {
 		return nil, err
 	}
-	c:= pb.NewCatalogServiceClient(conn)
+	c := pb.NewCatalogServiceClient(conn)
 	return &Client(conn, c), nil
 }
 
-func (c *Client) Close(){
+func (c *Client) Close() {
 	c.conn.Close()
 }
 
-func (c *Client) PostProduct(ctx context.Context, name, description string, price float64)(*Product, error) {
-	r, err:= c.service.PostProduct(
-		ctx, 
+func (c *Client) PostProduct(ctx context.Context, name, description string, price float64) (*Product, error) {
+	r, err := c.service.PostProduct(
+		ctx,
 		&pb.postProductRequest{
-			Name: name, 
-			Description: description, 
-			Price: price,
+			Name:        name,
+			Description: description,
+			Price:       price,
 		},
 	)
 
-	if err!= nil{
+	if err != nil {
 		return nil, err
 	}
 
 	return &Product{
-		ID: r.Product.Id,
-		Name: r.Product.Name,
-		Description: r.Product.Description, 
-		Price: r.Product.Price,
+		ID:          r.Product.Id,
+		Name:        r.Product.Name,
+		Description: r.Product.Description,
+		Price:       r.Product.Price,
 	}, nil
 }
-func (c *Client) GetProduct(ctx context.Context, id string)(*Product, error){
-	r, err:= c.service.GetProduct(
-		ctx, 
+func (c *Client) GetProduct(ctx context.Context, id string) (*Product, error) {
+	r, err := c.service.GetProduct(
+		ctx,
 		&pb.GetProductRequest{
-			Id: id
+			Id: id,
 		},
-		if err!= nil{
-			return nil, err
-		}
-		return &Product{
-			ID: r.Product.Id,
-			Name: r.Product.Name,
-			Description: r.Product.Description,
-			Price: r.Product.Price,
-		}, nil
 	)
+	if err != nil {
+		return nil, err
+	}
+	return &Product{
+		ID:          r.Product.Id,
+		Name:        r.Product.Name,
+		Description: r.Product.Description,
+		Price:       r.Product.Price,
+	}, nil
 }
-func (c *Client) GetProducts(ctx context.Context, skip uint64, take uint64, ids []string, query string)(*Product, error){
-	r, err:= c.service.GetProducts(
-		ctx, 
+func (c *Client) GetProducts(ctx context.Context, skip uint64, take uint64, ids []string, query string) (*Product, error) {
+	r, err := c.service.GetProducts(
+		ctx,
 		&pb.GetProductsRequest{
-			Ids: ids,
-			Skip: skip, 
-			Take: take, 
+			Ids:   ids,
+			Skip:  skip,
+			Take:  take,
 			Query: query,
 		},
 	)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	products := []Product{
-		for _, p:= range r.Products{
-			products = append(products, &Product{
-				ID: p.Id,
-				Name: p.Name,
-				Description: p.Description,
-				Price: p.Price,
-			})
-		}
+	products := []Product{}
+	for _, p := range r.Products {
+		products = append(products, &Product{
+			ID:          p.Id,
+			Name:        p.Name,
+			Description: p.Description,
+			Price:       p.Price,
+		})
 	}
 	return products, nil
 }

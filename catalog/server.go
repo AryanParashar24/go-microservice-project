@@ -1,10 +1,12 @@
 package catalog
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"net"
 
-	"github.com/AryanParashar24/go-microservices-project/ctalog/pb"
+	"github.com/AryanParashar24/go-microservices-project/catalog/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -30,52 +32,52 @@ func Listenning(s Service, port int) error {
 	return serv.Serv(lis)     // this starts the gRPC server and listens for incoming connections
 }
 
-func (s *grpcServer)PostProduct (ctx context.Context, r *pb.PostProductRequest) (*pb.PostProductResponse, error) {
-	p, err:= s.service.PostProduct(ctx, r.Name, r.Description, r.Price)
-	if err!= nil{
+func (s *grpcServer) PostProduct(ctx context.Context, r *pb.PostProductRequest) (*pb.PostProductResponse, error) {
+	p, err := s.service.PostProduct(ctx, r.Name, r.Description, r.Price)
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	return &pb.PostProductResponse(Product: &pb.Product{
-		Id: p.ID,
-		Name: p.Name,
-		Description: p.Description, 
-		Price: p.Price,
-	}), nil
+	return &pb.PostProductResponse{Product: &pb.Product{
+		Id:          p.ID,
+		Name:        p.Name,
+		Description: p.Description,
+		Price:       p.Price,
+	}}, nil
 }
-func (s *grpcServer)GetProducts(ctx context.Context, r *pb.PostProductRequest) (*pb.PostProductResponse, error) {
-	p, err:= s.service.GetProduct(ctx, r.Id)
-	if err != nil{
+func (s *grpcServer) GetProducts(ctx context.Context, r *pb.PostProductRequest) (*pb.PostProductResponse, error) {
+	p, err := s.service.GetProduct(ctx, r.Id)
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 	return &pb.GetProductResponse{Product: &pb.Product{
-			Id: r.Id,
-			Name: p.Name, 
-			DEscription: p.Description,
-			Price: p.Price,
-		}
+		Id:          r.Id,
+		Name:        p.Name,
+		DEscription: p.Description,
+		Price:       p.Price,
+	},
 	}, nil
 }
-func (s *grpcServer)GetProducts(ctx context.Context, r *pb.PostProductRequest) (*pb.PostProductResponse, error) {
+func (s *grpcServer) GetProducts(ctx context.Context, r *pb.PostProductRequest) (*pb.PostProductResponse, error) {
 	var res []productDocument
 	var err error
-	if r.Query != ""{
+	if r.Query != "" {
 		res, err = s.Service.SeatrchProducts(ctx, r.Query, r.Skip, r.Take)
-	}else if len(r.Ids) != 0{
+	} else if len(r.Ids) != 0 {
 		res, err = s.Service.GetProductByIDs(ctx, r.Ids)
-	}else{
-	res, err:= s.service.GetProducts(ctx, r.Name, r.Description, r.Price)
+	} else {
+		res, err := s.service.GetProducts(ctx, r.Name, r.Description, r.Price)
 	}
-	if err != nil{
+	if err != nil {
 		log.println(err)
 		return nil, err
 	}
 
-	products:= []*pb.product{}	// colelction of products which will going to get retruned from this function after ranging over them as in the code below
-	for _, p := range res{	// ranging over the response that has been hit from the GetProduct func or GetProductByIDs function which are all returning the collection of products
-	//each of these products will be available to us via p 
+	products := []*pb.product{} // colelction of products which will going to get retruned from this function after ranging over them as in the code below
+	for _, p := range res {     // ranging over the response that has been hit from the GetProduct func or GetProductByIDs function which are all returning the collection of products
+		//each of these products will be available to us via p
 		products = append(products, &pb.Product{
 			Id:          p.ID,
 			Name:        p.Name,
