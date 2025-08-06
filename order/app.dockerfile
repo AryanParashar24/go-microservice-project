@@ -8,9 +8,9 @@ COPY go.mod go.sum ./
 # Copy the Go module files
 COPY vendor vendor
 # Copy the vendor directory
-COPY catalog catalog    
+COPY order order    
 # Copy the account directory
-RUN  GO111MODULE=on go build -mod vendor -o /go/bin/app ./catalog/cmd/catalog
+RUN  GO111MODULE=on go build -mod vendor -o /go/bin/app ./order/cmd/order
 # Build the Go application and output it to /go/bin/app 
 FROM alpine:3.11
 WORKDIR /usr/bin

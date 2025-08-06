@@ -4,7 +4,7 @@ package account
 import (
 	"context"
 
-	"github.com/AryanParashar24/Go-Microservice-Project/account/pb" // import the generated protobuf package
+	"github.com/AryanParashar24/go-microservices-project/account/pb" // import the generated protobuf package
 	"google.golang.org/grpc"
 )
 
@@ -17,8 +17,8 @@ type Client struct {
 	service pb.AccountServiceClient
 }
 
-func NewClient(url string) { // now since we have a lcient struct we just need a function to take url and initialize a connection to return us a Client
-	conn, err := grpc.Dial(url, grpc.WithInsecure())
+func NewClient(url string) (*Client, error) { // now since we have a lcient struct we just need a function to take url and initialize a connection to return us a Client
+	conn, err := grpc.Dial(url, grpc.WithInsecure()) // this dials the server at the given URL and returns a connection
 	if err != nil {
 		return nil, err
 	}
@@ -52,11 +52,10 @@ func (c *Client) PostAccount(ctx context.Context, name string) (*Account, error)
 }
 
 func (c *Client) GetAccount(ctx context.Context, id string) (*Account, error) {
-	r, err := c.service.PostAccount(
+	r, err := c.service.GetAccount(
 		ctx,
-		&pb.PostAccountRequest{Name: name},
+		&pb.GetAccountRequest{Id: id},
 	)
-
 	if err != nil {
 		return nil, err
 	}

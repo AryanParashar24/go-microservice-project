@@ -7,43 +7,43 @@ import (
 )
 
 type Service interface {
-	PutProduct(ctx context.Context, name, description string, price float64) (*Prouct, error)
+	PutProduct(ctx context.Context, name, description string, price float64) (*Product, error)
 	GetProduct(ctx context.Context, id string) (*Product, error)
 	GetProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error)
 	GetProductByIDs(ctx context.Context, ids []string) ([]Product, error)
 	SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error)
 }
 
-type Products struct {
+type Product struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
-	Price       stiring `json:"price"`
+	Price       float64 `json:"price"`
 }
 
 type catalogService struct {
-	repository repository
+	repository Repository
 }
 
 func NewService(r Repository) Service {
 	return &catalogService{r}
 }
 
-func (s *catalogService) PutProduct(ctx context.Context, name, description string, price float64) (*Prouct, error) {
-	p := &productDocument{
+func (s *catalogService) PostProduct(ctx context.Context, name, description string, price float64) (*Product, error) {
+	p := &Product{
 		Name:        name,
 		Description: description,
 		Price:       price,
 		ID:          ksuid.New().String(), // generate a new ID for the product
 	}
-	if err := s.repository.putProduct(ctx, *p); err != nil {
+	if err := s.repository.PutProduct(ctx, *p); err != nil {
 		return nil, err
 	}
 	return p, nil
 }
 
 func (s *catalogService) GetProduct(ctx context.Context, id string) (*Product, error) {
-	return s.repository.GetProductsByID(ctx, id)
+	return s.repository.GetProductByID(ctx, id)
 }
 
 func (s *catalogService) GetProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error) {
@@ -54,7 +54,7 @@ func (s *catalogService) GetProducts(ctx context.Context, skip uint64, take uint
 }
 
 func (s *catalogService) GetProductByIDs(ctx context.Context, ids []string) ([]Product, error) {
-	return s.repository.ListProductWithIDs(ctx, ids)
+	return s.repository.ListProductsWithIDs(ctx, ids)
 }
 
 func (s *catalogService) SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {

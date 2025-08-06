@@ -19,7 +19,7 @@ type Repository interface {
 	GetProductByID(ctx context.Context, id string) (*Product, error)
 	ListProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error)
 	ListProductsWithIDs(ctx context.Context, ids []string) ([]Product, error)
-	SearchProducts(ctx context.Context, string uint64, take uint64) ([]Product, error)
+	SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error)
 }
 
 type elasticRepository struct {
@@ -27,12 +27,6 @@ type elasticRepository struct {
 }
 
 type productDocument struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-}
-
-type NewElastricDocument struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
@@ -46,7 +40,7 @@ func NewElasticRepository(url string) (Repository, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &elasticRepository(client), nil
+	return &elasticRepository{client}, nil
 }
 
 func (r *elasticRepository) Close() {
@@ -93,7 +87,7 @@ func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take 
 	res, err := r.client.Search(). // here the products are seached and listed
 					Index("catalog").
 					Type("product").
-					Query(elastic.NewMatchQuery()). // here its function is to match all the terms or the products with the query that we sent
+					Query(elastic.NewMatchAllQuery()). // here its function is to match all the terms or the products with the query that we sent
 					From(int(skip)).Size(int(take)).
 					Do(ctx) // we do context retrun error
 	if err != nil {
@@ -108,7 +102,7 @@ func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take 
 		p := Product{}
 		if err = json.Unmarshal(*hit.Source, &p); err == nil {
 			products = append(products, Product{
-				ID:          hit.id,
+				ID:          hit.Id,
 				Name:        p.Name,
 				Description: p.Description,
 				Price:       p.Price,
@@ -118,7 +112,7 @@ func (r *elasticRepository) ListProducts(ctx context.Context, skip uint64, take 
 	return products, err
 }
 
-func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string) ([]Product, error) {
+func (r *elasticRepository) ListProductsWithIDs(ctx context.Context, ids []string) ([]Product, error) {
 	items := []*elastic.MultiGetItem{}
 	for _, id := range ids {
 		items = append(items,
@@ -130,7 +124,7 @@ func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string
 	}
 	res, err := r.client.MultiGet().
 		Add(items...).
-		Do(Ctx)
+		Do(ctx)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -150,11 +144,11 @@ func (r *elasticRepository) ListProductWithIDs(ctx context.Context, ids []string
 	return products, nil
 }
 
-func (r *elasticRepository) SearchProducts(ctx context.Context, string uint64, take uint64) ([]Product, error) {
+func (r *elasticRepository) SearchProducts(ctx context.Context, query string, skip, take uint64) ([]Product, error) {
 	res, err := r.client.Search().
 		Index("catalog").
 		Type("product").
-		Query(elastic.NewMultiMaytchQuery(query, "name", "description")).
+		Query(elastic.NewMultiMatchQuery(query, "name", "description")).
 		From(int(skip)).Size(int(take)).
 		Do(ctx)
 	if err != nil {
